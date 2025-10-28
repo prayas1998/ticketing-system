@@ -1,16 +1,16 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_user
 from app.models import User
 from app.schemas import UserResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("", response_model=dict)
+@router.get("/", response_model=dict)
 def get_all_users(db: Session = Depends(get_db)) -> dict:
     """Get all users."""
     try:
@@ -31,4 +31,27 @@ def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)) -> dict:
     except HTTPException:
         raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@router.delete("/{user_id}", response_model=dict)
+def delete_user(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> dict:
+    """Delete a user."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        db.delete(user)
+        db.commit()
+        
+        return {"data": {"message": "User deleted successfully"}}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
