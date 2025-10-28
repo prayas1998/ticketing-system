@@ -1,4 +1,4 @@
-function TicketCard({ ticket }) {
+function TicketCard({ ticket, onUpdate, onDelete }) {
   const statusColors = {
     open: 'bg-blue-100 text-blue-800',
     in_progress: 'bg-yellow-100 text-yellow-800',
@@ -50,6 +50,15 @@ function TicketCard({ ticket }) {
 
       <div className="text-xs text-gray-500 mt-2">
         <p>Assigned: {ticket.assigned_to || 'Unassigned'}</p>
+      </div>
+
+      <div className="flex gap-2 mt-3">
+        <select onChange={(e) => onUpdate && onUpdate(ticket.id, { status: e.target.value })} value={ticket.status} className="text-xs border rounded px-2 py-1">
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+        <button onClick={() => onDelete && window.confirm('Delete ticket?') && onDelete(ticket.id)} className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
       </div>
     </div>
   );

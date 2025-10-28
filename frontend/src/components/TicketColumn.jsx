@@ -1,6 +1,6 @@
 import TicketCard from './TicketCard';
 
-function TicketColumn({ status, tickets }) {
+function TicketColumn({ status, tickets, onUpdate, onDelete }) {
   const statusTitles = {
     open: 'Open',
     in_progress: 'In Progress',
@@ -27,7 +27,7 @@ function TicketColumn({ status, tickets }) {
         {tickets.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No tickets</p>
         ) : (
-          tickets.map((ticket) => <TicketCard key={ticket.id} ticket={ticket} />)
+          tickets.map((ticket) => <TicketCard key={ticket.id} ticket={ticket} onUpdate={onUpdate} onDelete={onDelete} />)
         )}
       </div>
     </div>
