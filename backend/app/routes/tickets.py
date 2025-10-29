@@ -1,21 +1,40 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, get_current_user
 from app.models import Ticket, User
 from app.schemas import TicketResponse, TicketCreate, TicketUpdate
+from app.schemas.ticket import UserBasic
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
+
+
+def ticket_to_response(ticket: Ticket) -> dict:
+    """Convert Ticket model to TicketResponse dict with user data."""
+    return {
+        "id": ticket.id,
+        "title": ticket.title,
+        "description": ticket.description,
+        "status": ticket.status,
+        "priority": ticket.priority,
+        "assigned_to_user": UserBasic.model_validate(ticket.assignee) if ticket.assignee else None,
+        "created_by_user": UserBasic.model_validate(ticket.creator),
+        "created_at": ticket.created_at,
+        "updated_at": ticket.updated_at,
+    }
 
 
 @router.get("/", response_model=dict)
 def get_all_tickets(db: Session = Depends(get_db)) -> dict:
     """Get all tickets."""
     try:
-        tickets = db.query(Ticket).all()
-        return {"data": [TicketResponse.model_validate(ticket) for ticket in tickets]}
+        tickets = db.query(Ticket).options(
+            joinedload(Ticket.assignee),
+            joinedload(Ticket.creator)
+        ).all()
+        return {"data": [ticket_to_response(ticket) for ticket in tickets]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -24,10 +43,13 @@ def get_all_tickets(db: Session = Depends(get_db)) -> dict:
 def get_ticket_by_id(ticket_id: UUID, db: Session = Depends(get_db)) -> dict:
     """Get single ticket by ID."""
     try:
-        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        ticket = db.query(Ticket).options(
+            joinedload(Ticket.assignee),
+            joinedload(Ticket.creator)
+        ).filter(Ticket.id == ticket_id).first()
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return {"data": TicketResponse.model_validate(ticket)}
+        return {"data": ticket_to_response(ticket)}
     except HTTPException:
         raise
     except Exception as e:
@@ -54,7 +76,12 @@ def create_ticket(
         db.commit()
         db.refresh(new_ticket)
         
-        return {"data": TicketResponse.model_validate(new_ticket)}
+        ticket = db.query(Ticket).options(
+            joinedload(Ticket.assignee),
+            joinedload(Ticket.creator)
+        ).filter(Ticket.id == new_ticket.id).first()
+        
+        return {"data": ticket_to_response(ticket)}
     except HTTPException:
         raise
     except Exception as e:
@@ -82,7 +109,12 @@ def update_ticket(
         db.commit()
         db.refresh(ticket)
         
-        return {"data": TicketResponse.model_validate(ticket)}
+        updated_ticket = db.query(Ticket).options(
+            joinedload(Ticket.assignee),
+            joinedload(Ticket.creator)
+        ).filter(Ticket.id == ticket_id).first()
+        
+        return {"data": ticket_to_response(updated_ticket)}
     except HTTPException:
         raise
     except Exception as e:

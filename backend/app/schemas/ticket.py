@@ -1,10 +1,21 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.models.ticket import TicketStatus, TicketPriority
+
+if TYPE_CHECKING:
+    from app.schemas.user import UserBase
+
+
+class UserBasic(BaseModel):
+    id: UUID
+    username: str
+
+    class Config:
+        from_attributes = True
 
 
 class TicketCreate(BaseModel):
@@ -28,8 +39,8 @@ class TicketResponse(BaseModel):
     description: Optional[str]
     status: TicketStatus
     priority: TicketPriority
-    assigned_to: Optional[UUID]
-    created_by: UUID
+    assigned_to_user: Optional[UserBasic] = None
+    created_by_user: UserBasic
     created_at: datetime
     updated_at: datetime
 

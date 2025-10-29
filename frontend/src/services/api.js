@@ -13,10 +13,44 @@ export const setAuthToken = (token) => {
   authToken = token;
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+      localStorage.setItem('authToken', token);
+    } catch (error) {
+      console.error('Failed to save token to localStorage:', error);
+    }
   } else {
     delete api.defaults.headers.common['Authorization'];
+    try {
+      localStorage.removeItem('authToken');
+    } catch (error) {
+      console.error('Failed to remove token from localStorage:', error);
+    }
   }
 };
+
+const loadTokenFromStorage = () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      authToken = token;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error('Failed to load token from localStorage:', error);
+  }
+};
+
+loadTokenFromStorage();
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      setAuthToken(null);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const getAuthToken = () => authToken;
 

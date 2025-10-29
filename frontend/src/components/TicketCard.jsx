@@ -49,7 +49,8 @@ function TicketCard({ ticket, onUpdate, onDelete }) {
       </div>
 
       <div className="text-xs text-gray-500 mt-2">
-        <p>Assigned: {ticket.assigned_to || 'Unassigned'}</p>
+        <p>Assigned: {ticket.assigned_to_user?.username || 'Unassigned'}</p>
+        <p>Created by: {ticket.created_by_user?.username || 'Unknown'}</p>
       </div>
 
       <div className="flex gap-2 mt-3">

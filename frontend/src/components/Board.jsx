@@ -22,6 +22,7 @@ function Board() {
       setCurrentUser(user);
       loadTickets();
     } catch (err) {
+      logout();
       setShowAuthModal(true);
       setLoading(false);
     }
@@ -92,7 +93,12 @@ function Board() {
       <div className="flex justify-between items-center mb-6">
         <p className="text-lg">Welcome, <span className="font-bold">{currentUser?.username}</span></p>
         <div className="flex gap-2">
-          <button onClick={() => setShowCreateModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Ticket</button>
+          <button 
+            onClick={() => setShowCreateModal(true)} 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Create Ticket
+          </button>
           <button onClick={handleLogout} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Logout</button>
         </div>
       </div>
@@ -101,7 +107,12 @@ function Board() {
         <TicketColumn status="in_progress" tickets={filterTicketsByStatus('in_progress')} onUpdate={handleUpdateTicket} onDelete={handleDeleteTicket} />
         <TicketColumn status="done" tickets={filterTicketsByStatus('done')} onUpdate={handleUpdateTicket} onDelete={handleDeleteTicket} />
       </div>
-      {showCreateModal && <CreateTicketModal onClose={() => setShowCreateModal(false)} onSuccess={loadTickets} />}
+      {showCreateModal && (
+        <CreateTicketModal 
+          onClose={() => setShowCreateModal(false)} 
+          onSuccess={loadTickets} 
+        />
+      )}
     </div>
   );
 }

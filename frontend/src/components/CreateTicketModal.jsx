@@ -19,13 +19,14 @@ function CreateTicketModal({ onClose, onSuccess }) {
       const data = await fetchUsers();
       setUsers(data);
     } catch (err) {
-      setError('Failed to load users');
+      setUsers([]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) {
+    
+    if (!title.trim()) {
       setError('Title is required');
       return;
     }
@@ -33,12 +34,20 @@ function CreateTicketModal({ onClose, onSuccess }) {
     setLoading(true);
     setError('');
     try {
-      await createTicket({
-        title,
-        description,
+      const ticketData = {
+        title: title.trim(),
         priority,
-        assigned_to: assignedTo || null,
-      });
+      };
+      
+      if (description && description.trim()) {
+        ticketData.description = description.trim();
+      }
+      
+      if (assignedTo && assignedTo !== '') {
+        ticketData.assigned_to = assignedTo;
+      }
+      
+      await createTicket(ticketData);
       onSuccess();
       onClose();
     } catch (err) {
@@ -49,9 +58,17 @@ function CreateTicketModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold mb-4">Create Ticket</h2>
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={onClose}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+    >
+      <div 
+        className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" 
+        onClick={(e) => e.stopPropagation()}
+        style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', maxWidth: '32rem', margin: '0 16px' }}
+      >
+        <h2 className="text-2xl font-bold mb-4" style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Create Ticket</h2>
         {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
