@@ -16,14 +16,14 @@ export const setAuthToken = (token) => {
     try {
       localStorage.setItem('authToken', token);
     } catch (error) {
-      console.error('Failed to save token to localStorage:', error);
+      // Silently handle localStorage errors
     }
   } else {
     delete api.defaults.headers.common['Authorization'];
     try {
       localStorage.removeItem('authToken');
     } catch (error) {
-      console.error('Failed to remove token from localStorage:', error);
+      // Silently handle localStorage errors
     }
   }
 };
@@ -36,7 +36,7 @@ const loadTokenFromStorage = () => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
   } catch (error) {
-    console.error('Failed to load token from localStorage:', error);
+    // Silently handle localStorage errors
   }
 };
 
