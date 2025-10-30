@@ -7,6 +7,7 @@ from app.dependencies import get_db, get_current_user
 from app.models import Ticket, User
 from app.schemas import TicketResponse, TicketCreate, TicketUpdate
 from app.schemas.ticket import UserBasic
+from app.logger import logger
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -36,7 +37,8 @@ def get_all_tickets(db: Session = Depends(get_db)) -> dict:
         ).all()
         return {"data": [ticket_to_response(ticket) for ticket in tickets]}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"Error fetching tickets: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while fetching tickets")
 
 
 @router.get("/{ticket_id}", response_model=dict)
@@ -53,7 +55,8 @@ def get_ticket_by_id(ticket_id: UUID, db: Session = Depends(get_db)) -> dict:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"Error fetching tickets: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while fetching tickets")
 
 
 @router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
@@ -86,7 +89,8 @@ def create_ticket(
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred processing your request")
 
 
 @router.patch("/{ticket_id}", response_model=dict)
@@ -103,6 +107,14 @@ def update_ticket(
             raise HTTPException(status_code=404, detail="Ticket not found")
         
         update_data = ticket_data.model_dump(exclude_unset=True)
+        
+        if ticket.created_by != current_user.id:
+            if 'status' in update_data and len(update_data) == 1:
+                pass
+            else:
+                logger.warning(f"User {current_user.id} attempted to modify ticket {ticket_id} created by {ticket.created_by}")
+                raise HTTPException(status_code=403, detail="You can only modify tickets you created")
+        
         for field, value in update_data.items():
             setattr(ticket, field, value)
         
@@ -119,7 +131,8 @@ def update_ticket(
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred processing your request")
 
 
 @router.delete("/{ticket_id}", response_model=dict)
@@ -134,6 +147,10 @@ def delete_ticket(
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
         
+        if ticket.created_by != current_user.id:
+            logger.warning(f"User {current_user.id} attempted to delete ticket {ticket_id} created by {ticket.created_by}")
+            raise HTTPException(status_code=403, detail="You can only delete tickets you created")
+        
         db.delete(ticket)
         db.commit()
         
@@ -142,4 +159,5 @@ def delete_ticket(
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred processing your request")
