@@ -100,10 +100,31 @@ function Board({ onUserChange, onLogoutChange }) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
-          <p className="font-semibold">Error</p>
-          <p className="text-sm mt-1">{error}</p>
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-8 py-6 rounded-lg shadow-lg max-w-md">
+          <div className="flex items-start justify-between mb-3">
+            <p className="font-bold text-lg">Error</p>
+            <button
+              onClick={() => {
+                setError(null);
+                loadTickets();
+              }}
+              className="text-red-600 hover:text-red-800 font-bold text-xl leading-none"
+              title="Close"
+            >
+              ×
+            </button>
+          </div>
+          <p className="text-sm mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadTickets();
+            }}
+            className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+          >
+            Got it
+          </button>
         </div>
       </div>
     )

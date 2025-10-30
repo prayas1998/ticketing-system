@@ -63,10 +63,20 @@ export const login = async (username, password) => {
     setAuthToken(token);
     return token;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.detail || 'Login failed'
-    );
+    if (error.response?.data?.detail) {
+      const detail = error.response.data.detail;
+      const cleanedDetail = cleanErrorMessage(typeof detail === 'string' ? detail : 'Invalid credentials');
+      throw new Error(cleanedDetail || 'Invalid username or password. Please try again.');
+    }
+    throw new Error('Unable to sign in. Please check your connection and try again.');
   }
+};
+
+const cleanErrorMessage = (message) => {
+  return message
+    .replace(/Value error,?\s*/gi, '')
+    .replace(/^,\s*/, '')
+    .trim();
 };
 
 export const register = async (username, email, password) => {
@@ -80,9 +90,19 @@ export const register = async (username, email, password) => {
     setAuthToken(token);
     return token;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.detail || 'Registration failed'
-    );
+    if (error.response?.data?.detail) {
+      const detail = error.response.data.detail;
+      if (Array.isArray(detail)) {
+        const messages = detail
+          .map(err => cleanErrorMessage(err.msg || err.message || ''))
+          .filter(msg => msg)
+          .join('. ');
+        throw new Error(messages || 'Registration failed. Please check your information.');
+      }
+      const cleanedDetail = cleanErrorMessage(typeof detail === 'string' ? detail : '');
+      throw new Error(cleanedDetail || 'Registration failed. Please try again.');
+    }
+    throw new Error('Unable to register. Please check your connection and try again.');
   }
 };
 

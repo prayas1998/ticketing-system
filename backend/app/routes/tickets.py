@@ -113,7 +113,7 @@ def update_ticket(
                 pass
             else:
                 logger.warning(f"User {current_user.id} attempted to modify ticket {ticket_id} created by {ticket.created_by}")
-                raise HTTPException(status_code=403, detail="You can only modify tickets you created")
+                raise HTTPException(status_code=403, detail="You don't have permission to modify this ticket")
         
         for field, value in update_data.items():
             setattr(ticket, field, value)
@@ -149,7 +149,7 @@ def delete_ticket(
         
         if ticket.created_by != current_user.id:
             logger.warning(f"User {current_user.id} attempted to delete ticket {ticket_id} created by {ticket.created_by}")
-            raise HTTPException(status_code=403, detail="You can only delete tickets you created")
+            raise HTTPException(status_code=403, detail="You don't have permission to delete this ticket")
         
         db.delete(ticket)
         db.commit()
