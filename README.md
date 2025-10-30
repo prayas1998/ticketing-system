@@ -35,19 +35,3 @@ cd frontend
 npm install
 npm run dev
 ```
-
-## Documentation
-
-- [Setup Guide](docs/SETUP.md) - Installation and setup instructions
-- [API Documentation](docs/API.md) - API endpoints and usage
-- [Changelog](docs/CHANGELOG.md) - Project history and updates
-
-## Development Phases
-
-- ✅ Phase 0: Project skeleton
-- ⬜ Phase 1: Database models & schemas
-- ⬜ Phase 2: Read-only API endpoints
-- ⬜ Phase 3: Write API endpoints
-- ⬜ Phase 4: Authentication layer
-- ⬜ Phase 5: Basic frontend (read-only)
-- ⬜ Phase 6: Interactive frontend
